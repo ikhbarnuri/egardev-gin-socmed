@@ -2,6 +2,7 @@ package main
 
 import (
 	"egardev-gin-socmed/config"
+	"egardev-gin-socmed/router"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,8 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	router.AuthRouter(api)
 
 	r.Run(fmt.Sprintf(":%v", config.ENV.PORT))
 }
