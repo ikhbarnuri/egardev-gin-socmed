@@ -2,19 +2,20 @@ package helper
 
 import (
 	"egardev-gin-socmed/entity"
+	"errors"
 	"github.com/golang-jwt/jwt/v4"
 	"time"
 )
 
 var mySigningKey = []byte("mysecretkey")
 
-type JSTClaims struct {
+type JWTClaims struct {
 	ID int `json:"id"`
 	jwt.RegisteredClaims
 }
 
 func GenerateToken(user *entity.User) (string, error) {
-	claims := JSTClaims{
+	claims := JWTClaims{
 		ID: user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(60 * time.Minute)),
@@ -27,4 +28,25 @@ func GenerateToken(user *entity.User) (string, error) {
 	ss, err := token.SignedString(mySigningKey)
 
 	return ss, err
+}
+
+func ValidateToken(tokenString string) (*int, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return mySigningKey, nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return nil, errors.New("invalid token signature")
+		}
+
+		return nil, errors.New("your token was expired")
+	}
+
+	claims, ok := token.Claims.(*JWTClaims)
+	if !ok || !token.Valid {
+		return nil, errors.New("your token was expired")
+	}
+
+	return &claims.ID, nil
 }

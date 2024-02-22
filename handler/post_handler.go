@@ -5,6 +5,7 @@ import (
 	"egardev-gin-socmed/errorHandler"
 	"egardev-gin-socmed/helper"
 	"egardev-gin-socmed/service"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -41,10 +42,12 @@ func (h postHandler) Create(c *gin.Context) {
 
 		dst := filepath.Join("public/picture", filepath.Base(newFileName))
 		c.SaveUploadedFile(post.Picture, dst)
+
+		post.Picture.Filename = fmt.Sprintf("%s/public/picture/%s", c.Request.Host, newFileName)
 	}
 
-	userId := 1
-	post.UserID = userId
+	userId, _ := c.Get("userID")
+	post.UserID = userId.(int)
 
 	if err := h.service.Create(&post); err != nil {
 		errorHandler.HandleError(c, err)
